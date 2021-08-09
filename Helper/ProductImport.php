@@ -1,4 +1,5 @@
 <?php
+
 namespace Knawat\Dropshipping\Helper;
 
 use Knawat\MP;
@@ -173,7 +174,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         \Knawat\MPFactory $mpFactory,
         \Magento\Framework\App\ProductMetadataInterface $productMetadata
-    ) {
+    )
+    {
         parent::__construct($context);
         $this->productModel = $productModel;
         $this->authSession = $authSession;
@@ -205,17 +207,17 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         $this->importType = $importType;
         $default_args = [
             // 'import_id'         => 0,  // Import_ID
-            'limit'             => 25, // Limit for Fetch Products
-            'page'              => 1, // Page Number
-            'product_index'     => -1, // product index needed incase of memory issuee or timeout
+            'limit' => 25, // Limit for Fetch Products
+            'page' => 1, // Page Number
+            'product_index' => -1, // product index needed incase of memory issuee or timeout
             // 'force_update'      => false, // Whether to force update existing items.
-            'prevent_timeouts'  => true, // Check memory and time usage and abort if reaching limit.
-            'is_complete'       => false, // Is Import Complete?
-            'products_total'    => -1,
-            'imported'          => 0,
-            'failed'            => 0,
-            'updated'           => 0,
-            'skipped'           => 0
+            'prevent_timeouts' => true, // Check memory and time usage and abort if reaching limit.
+            'is_complete' => false, // Is Import Complete?
+            'products_total' => -1,
+            'imported' => 0,
+            'failed' => 0,
+            'updated' => 0,
+            'skipped' => 0
         ];
         $this->params = array_merge($default_args, $params);
         $defaultLanguage = $this->defaultLanguage;
@@ -227,21 +229,21 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         $this->start_time = time();
         $data = [
             'imported' => [],
-            'failed'   => [],
-            'updated'  => [],
-            'skipped'  => [],
+            'failed' => [],
+            'updated' => [],
+            'skipped' => [],
         ];
+
+        $lastUpdated = 0;
 
         switch ($this->importType) {
             case 'full':
                 $lastUpdated = $this->generalHelper->getConfigDirect('knawat_last_imported', true);
-                $sortData = array(
-                  'sort' => array('field'=>'updated','order'=>'asc')
-                );
+                $sortData = ['sort' => ['field' => 'updated', 'order' => 'asc']];
                 if (empty($lastUpdated)) {
                     $lastUpdated = 0;
                 }
-                $this->data = $mp->getProducts($this->params['limit'], $this->params['page'], $lastUpdated,$sortData);
+                $this->data = $mp->getProducts($this->params['limit'], $this->params['page'], $lastUpdated, $sortData);
                 break;
 
             case 'single':
@@ -258,7 +260,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         if (isset($this->data->code) && isset($this->data->message)) {
-            return ['status' => 'fail', 'message' => $this->data->name.': '.$this->data->message];
+            return ['status' => 'fail', 'message' => $this->data->name . ': ' . $this->data->message];
         }
 
         // Check for Products
@@ -276,7 +278,8 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             }
             // Handle errors
             if (isset($products->code) || !is_array($products)) {
-                return ['status' => 'fail', 'message' => __('Something went wrong during get data from Knawat MP API. Please try again later.')];
+                return ['status' => 'fail',
+                    'message' => __('Something went wrong during get data from Knawat MP API. Please try again later.')];
             }
 
             // Update Product totals.
@@ -289,7 +292,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             $attributeSetId = $this->getAttrSetId('Knawat');
             $defaultCategoryId = $this->storeManager->getStore()->getRootCategoryId();
             $savedAttributes = [];
-            $date='';
+            $date = '';
             foreach ($products as $index => $product) {
                 if ($index <= $this->params['product_index']) {
                     continue;
@@ -309,10 +312,10 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $totalQty += isset($vars['stock_quantity']) ? $vars['stock_quantity'] : 0;
                     }
                 }
-                if(!empty($formated_data['updated_time'])){
+                if (!empty($formated_data['updated_time'])) {
                     $this->params['last_updated'] = $formated_data['updated_time'];
                 }
-                if(!empty($product->updated)){
+                if (!empty($product->updated)) {
                     $date = $product->updated;
                 }
                 if (!isset($formated_data['id']) || empty($formated_data['id'])) {
@@ -348,7 +351,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             // Update stock
                             $stockItem = $this->stockRegistry->getStockItemBySku($var_product->getSku());
                             $stockItem->setQty($variation['stock_quantity']);
-                            $stockItem->setIsInStock((bool) ($variation['stock_quantity'] > 0) ? 1 : 0);
+                            $stockItem->setIsInStock((bool)($variation['stock_quantity'] > 0) ? 1 : 0);
                             $this->stockRegistry->updateStockItemBySku($var_product->getSku(), $stockItem);
 
                             $existingAssociatedProductIds[] = $var_product->getId();
@@ -410,7 +413,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 [
                                     'use_config_manage_stock' => 0,
                                     'manage_stock' => $variation['manage_stock'],
-                                    'is_in_stock'  => ($variation['stock_quantity'] > 0) ? 1 : 0,
+                                    'is_in_stock' => ($variation['stock_quantity'] > 0) ? 1 : 0,
                                     'qty' => $variation['stock_quantity']
                                 ]
                             );
@@ -424,7 +427,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     if (isset($formated_data['id']) && !empty($formated_data['id']) && $formated_data['id'] > 0) {
                         // Update stock
                         $stockItem = $this->stockRegistry->getStockItemBySku($formated_data['sku']);
-                        $stockItem->setIsInStock((bool) ($totalQty > 0) ? 1 : 0);
+                        $stockItem->setIsInStock((bool)($totalQty > 0) ? 1 : 0);
                         $this->stockRegistry->updateStockItemBySku($formated_data['sku'], $stockItem);
 
                         $data['updated'][] = $formated_data['id'];
@@ -444,216 +447,218 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         $versionCompare = version_compare($version, "2.2");
                         if ($versionCompare == -1) {
                             /*code for version 2.1.x*/
-                        $main_product = $this->productFactory->create();
-                        $main_product->setSku($formated_data['sku']);
-                        $main_product->setName($formated_data['name']);
-                        $main_product->setUrlKey(
-                            $this->translitUrl->filter($formated_data['name'].' '.$formated_data['sku'])
-                        );
-                        $main_product->setDescription($formated_data['description']);
-                        $main_product->setAttributeSetId($attributeSetId);
-                        $main_product->setStatus(
-                            \Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED
-                        );
-                        $main_product->setData('is_knawat', 1);
-                        $main_product->setCategoryIds([$defaultCategoryId]);
+                            $main_product = $this->productFactory->create();
+                            $main_product->setSku($formated_data['sku']);
+                            $main_product->setName($formated_data['name']);
+                            $main_product->setUrlKey(
+                                $this->translitUrl->filter($formated_data['name'] . ' ' . $formated_data['sku'])
+                            );
+                            $main_product->setDescription($formated_data['description']);
+                            $main_product->setAttributeSetId($attributeSetId);
+                            $main_product->setStatus(
+                                \Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED
+                            );
+                            $main_product->setData('is_knawat', 1);
+                            $main_product->setCategoryIds([$defaultCategoryId]);
 
-                        $configurableAttributesIds = [];
-                        foreach ($savedAttributes as $savedAttribute) {
-                            if (isset($savedAttribute['attr_id'])) {
-                                $configurableAttributesIds[] = $savedAttribute['attr_id'];
+                            $configurableAttributesIds = [];
+                            foreach ($savedAttributes as $savedAttribute) {
+                                if (isset($savedAttribute['attr_id'])) {
+                                    $configurableAttributesIds[] = $savedAttribute['attr_id'];
+                                }
                             }
-                        }
-                        // Super Attribute Ids Used To Create Configurable Product.
-                        $configurableAttributesIds = array_unique($configurableAttributesIds);
+                            // Super Attribute Ids Used To Create Configurable Product.
+                            $configurableAttributesIds = array_unique($configurableAttributesIds);
 
-                        $main_product->setAffectConfigurableProductAttributes($attributeSetId);
-                        $main_product->save();
-                        $productId = $main_product->getId();
-                        $main_product = $this->productRepository->getById($productId);
-                        $position = 0;
-                        $attributeModel = $this->objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute');
-                        foreach ($configurableAttributesIds as $attributeId) {
-                            $attribData = ['attribute_id' => $attributeId, 'product_id' => $productId, 'position' => $position];
-                            $position++;
-                            $attributeModel->setData($attribData)->save();
-                        }
-                        $main_product->setTypeId('configurable');
-                        $main_product->setWebsiteIds(array_keys($websites));
-                        $main_product->getTypeInstance()->setUsedProductAttributeIds(
-                            $configurableAttributesIds,
-                            $main_product
-                        );
-                        $main_product->setNewVariationsAttributeSetId($attributeSetId); // Setting Attribute Set Id
-                        $main_product->setAssociatedProductIds($associatedProductIds); // Setting Associated Products
-                        $main_product->setStockData(
-                            [
+                            $main_product->setAffectConfigurableProductAttributes($attributeSetId);
+                            $main_product->save();
+                            $productId = $main_product->getId();
+                            $main_product = $this->productRepository->getById($productId);
+                            $position = 0;
+                            $attributeModel = $this->objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute');
+                            foreach ($configurableAttributesIds as $attributeId) {
+                                $attribData = ['attribute_id' => $attributeId, 'product_id' => $productId,
+                                    'position' => $position];
+                                $position++;
+                                $attributeModel->setData($attribData)->save();
+                            }
+                            $main_product->setTypeId('configurable');
+                            $main_product->setWebsiteIds(array_keys($websites));
+                            $main_product->getTypeInstance()->setUsedProductAttributeIds(
+                                $configurableAttributesIds,
+                                $main_product
+                            );
+                            $main_product->setNewVariationsAttributeSetId($attributeSetId); // Setting Attribute Set Id
+                            $main_product->setAssociatedProductIds($associatedProductIds); // Setting Associated Products
+                            $main_product->setStockData(
+                                [
                                     'use_config_manage_stock' => 0,
                                     'manage_stock' => 1,
                                     'is_in_stock' => ($totalQty > 0) ? 1 : 0
-                            ]
-                        );
-                        // Set Existing Associated Products.
-                        if (!empty($existingAssociatedProductIds)) {
-                            $existingAssociatedProductIds = array_merge(
-                                $existingAssociatedProductIds,
-                                $associatedProductIds
+                                ]
                             );
-                            $main_product->setAssociatedProductIds($existingAssociatedProductIds);
-                        }
-
-                        $main_product->setCanSaveConfigurableAttributes(true);
-                        if (isset($savedAttributes['info_attribute']) && !empty($savedAttributes['info_attribute'])) {
-                            foreach ($savedAttributes['info_attribute'] as $infoKey => $infoAttribute) {
-                                $infoAttrib = current($infoAttribute);
-                                $infoAttrib = isset($infoAttrib->$defaultLanguage) ? $infoAttrib->$defaultLanguage : '';
-                                $main_product->setData($infoKey, $infoAttrib);
+                            // Set Existing Associated Products.
+                            if (!empty($existingAssociatedProductIds)) {
+                                $existingAssociatedProductIds = array_merge(
+                                    $existingAssociatedProductIds,
+                                    $associatedProductIds
+                                );
+                                $main_product->setAssociatedProductIds($existingAssociatedProductIds);
                             }
-                        }
-                        
-                        if (isset($formated_data['images']) && !empty($formated_data['images'])) {
-                            $this->importImages($main_product, $formated_data['images']);
-                        }
-                        
-                        $main_product->save();
-                        $productId = $main_product->getId();
 
-                        foreach ($websites as $webKey => $website) {
-                            foreach ($website as $storeKey => $store) {
-                                $storeLang = $store['lang'];
-                                $storeProductName = isset($formated_data['name_i18n']->$storeLang) ? $formated_data['name_i18n']->$storeLang : '';
-                                $storeProductDesc = isset($formated_data['description_i18n']->$storeLang) ? $formated_data['description_i18n']->$storeLang : '';
-
-                                $main_product->setStoreId($storeKey);
-                                $main_product->setName($storeProductName);
-                                $main_product->setDescription($storeProductDesc);
-                                $productResource->saveAttribute($main_product, 'name');
-                                $productResource->saveAttribute($main_product, 'description');
+                            $main_product->setCanSaveConfigurableAttributes(true);
+                            if (isset($savedAttributes['info_attribute']) && !empty($savedAttributes['info_attribute'])) {
+                                foreach ($savedAttributes['info_attribute'] as $infoKey => $infoAttribute) {
+                                    $infoAttrib = current($infoAttribute);
+                                    $infoAttrib = isset($infoAttrib->$defaultLanguage) ? $infoAttrib->$defaultLanguage : '';
+                                    $main_product->setData($infoKey, $infoAttrib);
+                                }
                             }
-                        }
 
-                        if (isset($savedAttributes['info_attribute']) && !empty($savedAttributes['info_attribute'])) {
-                            foreach ($savedAttributes['info_attribute'] as $infoKey => $infoAttribute) {
-                                foreach ($websites as $webKey => $website) {
-                                    foreach ($website as $storeKey => $store) {
-                                        $storeLang = isset($store['lang']) ? $store['lang'] : $defaultLanguage;
-                                        $infoAttrib = current($infoAttribute);
-                                        $infoAttrib = isset($infoAttrib->$storeLang) ? $infoAttrib->$storeLang : '';
-                                        $main_product->addAttributeUpdate($infoKey, $infoAttrib, $storeKey);
+                            if (isset($formated_data['images']) && !empty($formated_data['images'])) {
+                                $this->importImages($main_product, $formated_data['images']);
+                            }
+
+                            $main_product->save();
+                            $productId = $main_product->getId();
+
+                            foreach ($websites as $webKey => $website) {
+                                foreach ($website as $storeKey => $store) {
+                                    $storeLang = $store['lang'];
+                                    $storeProductName = isset($formated_data['name_i18n']->$storeLang) ? $formated_data['name_i18n']->$storeLang : '';
+                                    $storeProductDesc = isset($formated_data['description_i18n']->$storeLang) ? $formated_data['description_i18n']->$storeLang : '';
+
+                                    $main_product->setStoreId($storeKey);
+                                    $main_product->setName($storeProductName);
+                                    $main_product->setDescription($storeProductDesc);
+                                    $productResource->saveAttribute($main_product, 'name');
+                                    $productResource->saveAttribute($main_product, 'description');
+                                }
+                            }
+
+                            if (isset($savedAttributes['info_attribute']) && !empty($savedAttributes['info_attribute'])) {
+                                foreach ($savedAttributes['info_attribute'] as $infoKey => $infoAttribute) {
+                                    foreach ($websites as $webKey => $website) {
+                                        foreach ($website as $storeKey => $store) {
+                                            $storeLang = isset($store['lang']) ? $store['lang'] : $defaultLanguage;
+                                            $infoAttrib = current($infoAttribute);
+                                            $infoAttrib = isset($infoAttrib->$storeLang) ? $infoAttrib->$storeLang : '';
+                                            $main_product->addAttributeUpdate($infoKey, $infoAttrib, $storeKey);
+                                        }
                                     }
                                 }
                             }
-                        }
 
 
-                        $data['imported'][] = $productId;
-                            /*code for version 2.1.x*/    
-                            } else {
+                            $data['imported'][] = $productId;
+                            /*code for version 2.1.x*/
+                        } else {
                             /*code for version 2.2.x*/
-                        $main_product = $this->productFactory->create();
-                        $main_product->setSku($formated_data['sku']);
-                        $main_product->setName($formated_data['name']);
-                        $main_product->setUrlKey(
-                            $this->translitUrl->filter($formated_data['name'].' '.$formated_data['sku'])
-                        );
-                        $main_product->setDescription($formated_data['description']);
-                        $main_product->setAttributeSetId($attributeSetId);
-                        $main_product->setStatus(
-                            \Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED
-                        );
-                        $main_product->setData('is_knawat', 1);
-                        $main_product->setTypeId('configurable');
-                        $main_product->setWebsiteIds(array_keys($websites));
-                        $main_product->setCategoryIds([$defaultCategoryId]);
-                        $main_product->setStockData(
-                            [
-                                'use_config_manage_stock' => 0,
-                                'manage_stock' => 1,
-                                'is_in_stock' => ($totalQty > 0) ? 1 : 0
-                            ]
-                        );
-
-                        $configurableAttributesIds = [];
-                        foreach ($savedAttributes as $savedAttribute) {
-                            if (isset($savedAttribute['attr_id'])) {
-                                $configurableAttributesIds[] = $savedAttribute['attr_id'];
-                            }
-                        }
-                        // Super Attribute Ids Used To Create Configurable Product.
-                        $configurableAttributesIds = array_unique($configurableAttributesIds);
-
-                        $main_product->setAffectConfigurableProductAttributes($attributeSetId);
-                        $main_product->getTypeInstance()->setUsedProductAttributeIds(
-                            $configurableAttributesIds,
-                            $main_product
-                        );
-                        $main_product->setNewVariationsAttributeSetId($attributeSetId); // Setting Attribute Set Id
-                        $main_product->setAssociatedProductIds($associatedProductIds); // Setting Associated Products
-
-                        // Set Existing Associated Products.
-                        if (!empty($existingAssociatedProductIds)) {
-                            $existingAssociatedProductIds = array_merge(
-                                $existingAssociatedProductIds,
-                                $associatedProductIds
+                            $main_product = $this->productFactory->create();
+                            $main_product->setSku($formated_data['sku']);
+                            $main_product->setName($formated_data['name']);
+                            $main_product->setUrlKey(
+                                $this->translitUrl->filter($formated_data['name'] . ' ' . $formated_data['sku'])
                             );
-                            $main_product->setAssociatedProductIds($existingAssociatedProductIds);
-                        }
+                            $main_product->setDescription($formated_data['description']);
+                            $main_product->setAttributeSetId($attributeSetId);
+                            $main_product->setStatus(
+                                \Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED
+                            );
+                            $main_product->setData('is_knawat', 1);
+                            $main_product->setTypeId('configurable');
+                            $main_product->setWebsiteIds(array_keys($websites));
+                            $main_product->setCategoryIds([$defaultCategoryId]);
+                            $main_product->setStockData(
+                                [
+                                    'use_config_manage_stock' => 0,
+                                    'manage_stock' => 1,
+                                    'is_in_stock' => ($totalQty > 0) ? 1 : 0
+                                ]
+                            );
 
-                        $main_product->setCanSaveConfigurableAttributes(true);
-                        if (isset($savedAttributes['info_attribute']) && !empty($savedAttributes['info_attribute'])) {
-                            foreach ($savedAttributes['info_attribute'] as $infoKey => $infoAttribute) {
-                                $infoAttrib = current($infoAttribute);
-                                $infoAttrib = isset($infoAttrib->$defaultLanguage) ? $infoAttrib->$defaultLanguage : '';
-                                $main_product->setData($infoKey, $infoAttrib);
+                            $configurableAttributesIds = [];
+                            foreach ($savedAttributes as $savedAttribute) {
+                                if (isset($savedAttribute['attr_id'])) {
+                                    $configurableAttributesIds[] = $savedAttribute['attr_id'];
+                                }
                             }
-                        }
+                            // Super Attribute Ids Used To Create Configurable Product.
+                            $configurableAttributesIds = array_unique($configurableAttributesIds);
 
-                        if (isset($formated_data['images']) && !empty($formated_data['images'])) {
-                            $this->importImages($main_product, $formated_data['images']);
-                        }
-                        $main_product->save();
-                        $productId = $main_product->getId();
+                            $main_product->setAffectConfigurableProductAttributes($attributeSetId);
+                            $main_product->getTypeInstance()->setUsedProductAttributeIds(
+                                $configurableAttributesIds,
+                                $main_product
+                            );
+                            $main_product->setNewVariationsAttributeSetId($attributeSetId); // Setting Attribute Set Id
+                            $main_product->setAssociatedProductIds($associatedProductIds); // Setting Associated Products
 
-                        foreach ($websites as $webKey => $website) {
-                            foreach ($website as $storeKey => $store) {
-                                $storeLang = $store['lang'];
-                                $storeProductName = isset($formated_data['name_i18n']->$storeLang) ? $formated_data['name_i18n']->$storeLang : '';
-                                $storeProductDesc = isset($formated_data['description_i18n']->$storeLang) ? $formated_data['description_i18n']->$storeLang : '';
-
-                                $main_product->setStoreId($storeKey);
-                                $main_product->setName($storeProductName);
-                                $main_product->setDescription($storeProductDesc);
-                                $productResource->saveAttribute($main_product, 'name');
-                                $productResource->saveAttribute($main_product, 'description');
+                            // Set Existing Associated Products.
+                            if (!empty($existingAssociatedProductIds)) {
+                                $existingAssociatedProductIds = array_merge(
+                                    $existingAssociatedProductIds,
+                                    $associatedProductIds
+                                );
+                                $main_product->setAssociatedProductIds($existingAssociatedProductIds);
                             }
-                        }
 
-                        if (isset($savedAttributes['info_attribute']) && !empty($savedAttributes['info_attribute'])) {
-                            foreach ($savedAttributes['info_attribute'] as $infoKey => $infoAttribute) {
-                                foreach ($websites as $webKey => $website) {
-                                    foreach ($website as $storeKey => $store) {
-                                        $storeLang = isset($store['lang']) ? $store['lang'] : $defaultLanguage;
-                                        $infoAttrib = current($infoAttribute);
-                                        $infoAttrib = isset($infoAttrib->$storeLang) ? $infoAttrib->$storeLang : '';
-                                        $main_product->addAttributeUpdate($infoKey, $infoAttrib, $storeKey);
+                            $main_product->setCanSaveConfigurableAttributes(true);
+                            if (isset($savedAttributes['info_attribute']) && !empty($savedAttributes['info_attribute'])) {
+                                foreach ($savedAttributes['info_attribute'] as $infoKey => $infoAttribute) {
+                                    $infoAttrib = current($infoAttribute);
+                                    $infoAttrib = isset($infoAttrib->$defaultLanguage) ? $infoAttrib->$defaultLanguage : '';
+                                    $main_product->setData($infoKey, $infoAttrib);
+                                }
+                            }
+
+                            if (isset($formated_data['images']) && !empty($formated_data['images'])) {
+                                $this->importImages($main_product, $formated_data['images']);
+                            }
+                            $main_product->save();
+                            $productId = $main_product->getId();
+
+                            foreach ($websites as $webKey => $website) {
+                                foreach ($website as $storeKey => $store) {
+                                    $storeLang = $store['lang'];
+                                    $storeProductName = isset($formated_data['name_i18n']->$storeLang) ? $formated_data['name_i18n']->$storeLang : '';
+                                    $storeProductDesc = isset($formated_data['description_i18n']->$storeLang) ? $formated_data['description_i18n']->$storeLang : '';
+
+                                    $main_product->setStoreId($storeKey);
+                                    $main_product->setName($storeProductName);
+                                    $main_product->setDescription($storeProductDesc);
+                                    $productResource->saveAttribute($main_product, 'name');
+                                    $productResource->saveAttribute($main_product, 'description');
+                                }
+                            }
+
+                            if (isset($savedAttributes['info_attribute']) && !empty($savedAttributes['info_attribute'])) {
+                                foreach ($savedAttributes['info_attribute'] as $infoKey => $infoAttribute) {
+                                    foreach ($websites as $webKey => $website) {
+                                        foreach ($website as $storeKey => $store) {
+                                            $storeLang = isset($store['lang']) ? $store['lang'] : $defaultLanguage;
+                                            $infoAttrib = current($infoAttribute);
+                                            $infoAttrib = isset($infoAttrib->$storeLang) ? $infoAttrib->$storeLang : '';
+                                            $main_product->addAttributeUpdate($infoKey, $infoAttrib, $storeKey);
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        $position = 0;
-                        $attributeModel = $this->objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute');
-                        foreach ($configurableAttributesIds as $attributeId) {
-                            $attribData = ['attribute_id' => $attributeId, 'product_id' => $productId, 'position' => $position];
-                            $position++;
-                            $attributeModel->setData($attribData)->save();
-                        }
-                        $data['imported'][] = $productId;
-                            /*code for version 2.2.x*/    
+                            $position = 0;
+                            $attributeModel = $this->objectManager->create('Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute');
+                            foreach ($configurableAttributesIds as $attributeId) {
+                                $attribData = ['attribute_id' => $attributeId, 'product_id' => $productId,
+                                    'position' => $position];
+                                $position++;
+                                $attributeModel->setData($attribData)->save();
+                            }
+                            $data['imported'][] = $productId;
+                            /*code for version 2.2.x*/
                         }
                     }
                 } catch (\Exception $e) {
-                    $this->logger->info("[PRODUCT_IMPORT][ERROR] ".$e->getMessage());
+                    $this->logger->info("[PRODUCT_IMPORT][ERROR] " . $e->getMessage());
                     if (isset($formated_data['id'])) {
                         $data['failed'][] = $formated_data['id'];
                     } elseif (isset($formated_data['sku'])) {
@@ -675,19 +680,20 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->params['is_complete'] = false;
             }
             $datetime = new \DateTime($date);
-            $lastUpdateTime = (int) ($datetime->getTimestamp().$datetime->format('u')/ 1000);
-            if(!empty($date) && $lastUpdated != $lastUpdateTime){
+            $lastUpdateTime = (int)($datetime->getTimestamp() . $datetime->format('u') / 1000);
+            if (!empty($date) && $lastUpdated != $lastUpdateTime) {
                 //update product import date           
-                $lastImportPath = self::PATH_KNAWAT_DEFAULT.'knawat_last_imported';
+                $lastImportPath = self::PATH_KNAWAT_DEFAULT . 'knawat_last_imported';
                 $this->generalHelper->setConfig($lastImportPath, $lastUpdateTime);
-                    $this->params['page'] = 1;
-                    $this->params['product_index'] = -1;
-            } else if( $this->params['products_total'] == ( $this->params['product_index'] + 1 ) ){
+                $this->params['page'] = 1;
+                $this->params['product_index'] = -1;
+            } else if ($this->params['products_total'] == ($this->params['product_index'] + 1)) {
                 $this->params['page'] += 1;
             }
             return $data;
         } else {
-            return ['status' => 'fail', 'message' => __('Something went wrong during get data from Knawat MP API. Please try again later.')];
+            return ['status' => 'fail',
+                'message' => __('Something went wrong during get data from Knawat MP API. Please try again later.')];
         }
     }
 
@@ -707,7 +713,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
 
             $sku = $product->sku;
             $updated = $product->updated;
-            if(isset($updated)){
+            if (isset($updated)) {
                 $new_product['updated_time'] = $updated;
             }
             $product_id = $this->getProductBySku($sku);
@@ -772,7 +778,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         if (!empty($attributeOptions) && is_array($attributeOptions)) {
                             $attributeOptions = [
                                 'name_i18n' => $attribute->name,
-                                'value'     => $attributeOptions,
+                                'value' => $attributeOptions,
                                 'attr_code' => $defaultCode
                             ];
                         }
@@ -798,7 +804,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     if ($varient_id && $varient_id > 0) {
                         $temp_variant['id'] = $varient_id;
                     } else {
-                        $temp_variant['sku']  = $variation->sku;
+                        $temp_variant['sku'] = $variation->sku;
                         $temp_variant['name'] = isset($new_product['name']) ? $new_product['name'] : '';
                         $temp_variant['type'] = 'simple';
                     }
@@ -814,9 +820,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                     $temp_variant['manage_stock'] = true;
                     $temp_variant['stock_quantity'] = isset($variation->quantity) ? $variation->quantity : 0;
                     $temp_variant['weight'] = isset($variation->weight) ? round(floatval($variation->weight * $weightMultiplier), 2) : 0;
-                    if ($varient_id && $varient_id > 0 && $product_id) {
-                        // Update Data for existing Variend Here.
-                    } else {
+                    if (!($varient_id && $varient_id > 0 && $product_id)) {
                         if (isset($variation->attributes) && !empty($variation->attributes)) {
                             foreach ($variation->attributes as $attribute) {
                                 // continue if no attribute name found.
@@ -858,7 +862,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                             }
                             if (isset($temp_variant['raw_attributes']) && !empty($temp_variant['raw_attributes'])) {
                                 if (isset($temp_variant['name'])) {
-                                    $temp_variant['name'] .= '-'.implode('-', $temp_variant['raw_attributes']);
+                                    $temp_variant['name'] .= '-' . implode('-', $temp_variant['raw_attributes']);
                                 }
                             }
                         }
@@ -882,7 +886,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             }
             $new_product['variations'] = $variations;
         } catch (\Exception $e) {
-            $this->logger->info("[FORMAT_PRODUCT][ERROR] ".$e->getMessage());
+            $this->logger->info("[FORMAT_PRODUCT][ERROR] " . $e->getMessage());
         }
         return $new_product;
     }
@@ -971,33 +975,33 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                 if (empty($storeValue)) {
                                     $storeValue = [$valueKey];
                                 }
-                                $attributeValues[$attributeCode.'_'.$this->generateAttributeValueKey($valueKey)] = $storeValue;
+                                $attributeValues[$attributeCode . '_' . $this->generateAttributeValueKey($valueKey)] = $storeValue;
                             }
                         }
                         $new_attribute->setData(
                             [
-                                'attribute_code'                => $attributeCode,
-                                'entity_type_id'                => $entityTypeId,
-                                'is_global'                     => 1,
-                                'is_user_defined'               => 1,
-                                'frontend_input'                => 'select',
-                                'is_unique'                     => 0,
-                                'is_required'                   => 0,
-                                'is_searchable'                 => 1,
+                                'attribute_code' => $attributeCode,
+                                'entity_type_id' => $entityTypeId,
+                                'is_global' => 1,
+                                'is_user_defined' => 1,
+                                'frontend_input' => 'select',
+                                'is_unique' => 0,
+                                'is_required' => 0,
+                                'is_searchable' => 1,
                                 'is_visible_in_advanced_search' => 1,
-                                'is_comparable'                 => 1,
-                                'is_filterable'                 => 1,
-                                'is_filterable_in_search'       => 0,
-                                'is_used_for_promo_rules'       => 0,
-                                'is_html_allowed_on_front'      => 0,
-                                'is_visible_on_front'           => 0,
-                                'used_in_product_listing'       => 0,
-                                'used_for_sort_by'              => 0,
-                                'frontend_label'                => $attribute['name'],
-                                'store_labels'                  => $storeLabels,
-                                'backend_type'                  => 'varchar',
-                                'backend_model'                 => \Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend::class,
-                                'option'                        => ['value' => $attributeValues],
+                                'is_comparable' => 1,
+                                'is_filterable' => 1,
+                                'is_filterable_in_search' => 0,
+                                'is_used_for_promo_rules' => 0,
+                                'is_html_allowed_on_front' => 0,
+                                'is_visible_on_front' => 0,
+                                'used_in_product_listing' => 0,
+                                'used_for_sort_by' => 0,
+                                'frontend_label' => $attribute['name'],
+                                'store_labels' => $storeLabels,
+                                'backend_type' => 'varchar',
+                                'backend_model' => \Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend::class,
+                                'option' => ['value' => $attributeValues],
                             ]
                         );
                         $new_attribute->save();
@@ -1021,26 +1025,26 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                         // Create Normal Attribute
                         $new_attribute->setData(
                             [
-                                'attribute_code'                => $attributeCode,
-                                'entity_type_id'                => $entityTypeId,
-                                'frontend_input'                => 'text',
-                                'is_global'                     => 0,
-                                'is_user_defined'               => 1,
-                                'is_unique'                     => 0,
-                                'is_required'                   => 0,
-                                'is_searchable'                 => 0,
+                                'attribute_code' => $attributeCode,
+                                'entity_type_id' => $entityTypeId,
+                                'frontend_input' => 'text',
+                                'is_global' => 0,
+                                'is_user_defined' => 1,
+                                'is_unique' => 0,
+                                'is_required' => 0,
+                                'is_searchable' => 0,
                                 'is_visible_in_advanced_search' => 0,
-                                'is_comparable'                 => 0,
-                                'is_filterable'                 => 0,
-                                'is_filterable_in_search'       => 0,
-                                'is_used_for_promo_rules'       => 0,
-                                'is_html_allowed_on_front'      => 0,
-                                'is_visible_on_front'           => 1,
-                                'used_in_product_listing'       => 0,
-                                'used_for_sort_by'              => 0,
-                                'frontend_label'                => $attribute['name'],
-                                'store_labels'                  => $storeLabels,
-                                'backend_type'                  => 'text',
+                                'is_comparable' => 0,
+                                'is_filterable' => 0,
+                                'is_filterable_in_search' => 0,
+                                'is_used_for_promo_rules' => 0,
+                                'is_html_allowed_on_front' => 0,
+                                'is_visible_on_front' => 1,
+                                'used_in_product_listing' => 0,
+                                'used_for_sort_by' => 0,
+                                'frontend_label' => $attribute['name'],
+                                'store_labels' => $storeLabels,
+                                'backend_type' => 'text',
                             ]
                         );
 
@@ -1099,10 +1103,10 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                                     $version = $this->productMetadata->getVersion();
                                     $versionCompare = version_compare($version, "2.3");
                                     if ($versionCompare == 1) {
-                                         $_option->setLabel($valueKey);
-                                     }else{
-                                         $_option->setLabel($_attributeOptionLabel);
-                                     }
+                                        $_option->setLabel($valueKey);
+                                    } else {
+                                        $_option->setLabel($_attributeOptionLabel);
+                                    }
 
                                     $_option->setStoreLabels($storeLabels);
                                     $_option->setSortOrder(0);
@@ -1134,7 +1138,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
                 }
             }
         } catch (\Exception $e) {
-            $this->logger->info("[CREATE_UPDATE_ATTRIBUTE][ERROR] ".$e->getMessage());
+            $this->logger->info("[CREATE_UPDATE_ATTRIBUTE][ERROR] " . $e->getMessage());
         }
         return $formattedAttributes;
     }
@@ -1148,7 +1152,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
     protected function generateAttributeCode($label, $isNormal = false)
     {
         if ($isNormal) {
-            $label = 'k_'.$label;
+            $label = 'k_' . $label;
         }
         $code = substr(
             preg_replace(
@@ -1163,7 +1167,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         if (!$validatorAttrCode->isValid($code)) {
             $code = ($code ?: substr(hash('sha256', time()), 0, 8));
         }
-        return $code."_knawat";
+        return $code . "_knawat";
     }
 
     /**
@@ -1185,7 +1189,7 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
         );
         $validatorAttrValue = new \Zend_Validate_Regex(['pattern' => '/^[a-z_0-9]+$/']);
         if (!$validatorAttrValue->isValid($valueKey)) {
-            $valueKey = 'att_val_'.($valueKey ?: substr(hash('sha256', time()), 0, 8));
+            $valueKey = 'att_val_' . ($valueKey ?: substr(hash('sha256', time()), 0, 8));
         }
         return $valueKey;
     }
@@ -1217,16 +1221,16 @@ class ProductImport extends \Magento\Framework\App\Helper\AbstractHelper
             return false;
         }
         // Temporory Directory for Image.
-        $tmpDir = $this->directoryList->getPath(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA).DIRECTORY_SEPARATOR.'tmp';
+        $tmpDir = $this->directoryList->getPath(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA) . DIRECTORY_SEPARATOR . 'tmp';
         // Create folder if it is not exists.
         $this->file->checkAndCreateFolder($tmpDir);
 
         foreach ($imageUrls as $index => $imageUrl) {
             // File Path for download image.
-           $tempImgName =  random_int(999, 9999999) . baseName($imageUrl);
+            $tempImgName = random_int(999, 9999999) . baseName($imageUrl);
             $newFileName = $tmpDir . DIRECTORY_SEPARATOR . $tempImgName;
-            if(strlen($tempImgName)>=90){
-                $cutLength = (strlen($tempImgName) - 90) +10;
+            if (strlen($tempImgName) >= 90) {
+                $cutLength = (strlen($tempImgName) - 90) + 10;
                 $newFileName = $tmpDir . DIRECTORY_SEPARATOR . substr($tempImgName, $cutLength);
             }
             $newFileName = strtok($newFileName, "?");
