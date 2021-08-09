@@ -188,7 +188,7 @@ class Sync extends \Magento\Backend\Block\Template
     {
         $totalProducts = $this->getTotalProducts();
         $syncProducts = $this->getLastSyncProducts();
-        if ($totalProducts && $syncProducts) {
+        if ($totalProducts !== false && $syncProducts !== false) {
             return round(($syncProducts * 100) / $totalProducts);
         }
         return false;
