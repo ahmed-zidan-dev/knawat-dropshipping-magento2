@@ -2,6 +2,14 @@
 
 namespace Knawat\Dropshipping\Block\Adminhtml;
 
+use Knawat\Dropshipping\Helper\ManageConfig;
+use Magento\Backend\Block\Template\Context;
+use Magento\Config\Model\ResourceModel\Config;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Serialize\SerializerInterface;
+
 /**
  * Class Import
  * @package Knawat\Dropshipping\Block\Adminhtml
@@ -10,17 +18,17 @@ class Import extends \Magento\Backend\Block\Template
 {
 
     /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     * @var ScopeConfigInterface
      */
     protected $scopeConfig;
 
     /**
-     * @var \Magento\Config\Model\ResourceModel\Config
+     * @var Config
      */
     protected $configModel;
-    
+
     /**
-     * @var \Knawat\Dropshipping\Helper\ManageConfig
+     * @var ManageConfig
      */
     protected $configHelper;
 
@@ -30,28 +38,33 @@ class Import extends \Magento\Backend\Block\Template
     const PATH_KNAWAT_DEFAULT = 'knawat/store/';
 
     /**
-     * @var \Magento\Framework\App\ProductMetadataInterface
+     * @var ProductMetadataInterface
      */
     protected $productMetadata;
 
     /**
-     * @var \Magento\Framework\Serialize\SerializerInterface
+     * @var SerializerInterface
      */
     private $serializer;
 
     /**
      * Settings constructor.
-     * @param \Magento\Backend\Block\Template\Context $context
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param Context $context
+     * @param ScopeConfigInterface $scopeConfig
+     * @param Config $configModel
+     * @param ManageConfig $configHelper
+     * @param ProductMetadataInterface $productMetadata
+     * @param SerializerInterface $serializer
      */
     public function __construct(
-        \Magento\Backend\Block\Template\Context $context,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Config\Model\ResourceModel\Config $configModel,
-        \Knawat\Dropshipping\Helper\ManageConfig $configHelper,
-        \Magento\Framework\App\ProductMetadataInterface $productMetadata,
-        \Magento\Framework\Serialize\SerializerInterface $serializer
-    ) {
+        Context $context,
+        ScopeConfigInterface $scopeConfig,
+        Config $configModel,
+        ManageConfig $configHelper,
+        ProductMetadataInterface $productMetadata,
+        SerializerInterface $serializer
+    )
+    {
         $this->scopeConfig = $scopeConfig;
         $this->configModel = $configModel;
         $this->configHelper = $configHelper;
@@ -67,18 +80,18 @@ class Import extends \Magento\Backend\Block\Template
     public function getConfigData($path)
     {
         $storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
-        return $this->scopeConfig->getValue(self::PATH_KNAWAT_DEFAULT.$path, $storeScope);
+        return $this->scopeConfig->getValue(self::PATH_KNAWAT_DEFAULT . $path, $storeScope);
     }
 
     /**
      * @return bool|mixed
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function getImportStatus()
     {
         $configConnection = $this->configModel->getConnection();
         $identifier = 'kdropship_import';
-        $select = $configConnection->select()->from($this->configModel->getMainTable())->where('path=?', self::PATH_KNAWAT_DEFAULT.$identifier);
+        $select = $configConnection->select()->from($this->configModel->getMainTable())->where('path=?', self::PATH_KNAWAT_DEFAULT . $identifier);
         $configData = $configConnection->fetchRow($select);
         if (!empty($configData) && isset($configData['value'])) {
             $importData = $configData['value'];
@@ -90,11 +103,17 @@ class Import extends \Magento\Backend\Block\Template
         return false;
     }
 
-    public function getKnawatConnection() {
+    /**
+     * check Knawat connection status
+     * @return bool
+     */
+    public function isKnawatConnected(): bool
+    {
         return !!$this->configHelper->getToken();
     }
 
-    public function isVersionTwo() {
+    public function isVersionTwo(): bool
+    {
         $version = $this->productMetadata->getVersion();
         $versionCompare = version_compare($version, "2.2");
         return $versionCompare == -1;
