@@ -6,7 +6,8 @@
 
 /media/*
 !/media/.htaccess
-
+.idea
+vendor
 !/media/customer
 /media/customer/*
 !/media/customer/.htaccess
