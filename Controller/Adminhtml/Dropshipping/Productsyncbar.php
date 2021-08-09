@@ -10,10 +10,6 @@ use Magento\Backend\App\Action\Context;
 class Productsyncbar extends \Magento\Backend\App\Action
 {
     /**
-     * @var \Knawat\Dropshipping\Helper\ManageOrders
-     */
-    protected $orderHelper;
-    /**
      * @var generalHelper
      */
     protected $generalHelper;
@@ -27,7 +23,7 @@ class Productsyncbar extends \Magento\Backend\App\Action
      */
     public function __construct(
         Context $context,
-        \Knawat\Dropshipping\Helper\General $generalHelper
+        generalHelper $generalHelper
     ) {
         $this->generalHelper = $generalHelper;
         parent::__construct($context);

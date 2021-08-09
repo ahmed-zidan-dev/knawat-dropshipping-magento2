@@ -133,7 +133,7 @@ class Sync extends \Magento\Backend\Block\Template
     }
 
     /**
-     * @return bool
+     * @return bool |int
      */
     public function getLastSyncProducts()
     {
