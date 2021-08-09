@@ -1,7 +1,11 @@
 <?php
+
 namespace Knawat\Dropshipping\Controller\Adminhtml\Dropshipping;
 
 use Magento\Backend\App\Action\Context;
+use \Knawat\Dropshipping\Helper\General;
+use \Magento\Framework\App\ResponseInterface;
+use \Magento\Framework\Controller\ResultInterface;
 
 /**
  * Class Productsyncbar
@@ -10,7 +14,7 @@ use Magento\Backend\App\Action\Context;
 class Productsyncbar extends \Magento\Backend\App\Action
 {
     /**
-     * @var generalHelper
+     * @var General
      */
     protected $generalHelper;
 
@@ -19,34 +23,41 @@ class Productsyncbar extends \Magento\Backend\App\Action
     /**
      * Productsyncbar constructor.
      * @param Context $context
-     * @param \Knawat\Dropshipping\Helper\ManageOrders $orderHelper
+     * @param General $generalHelper
      */
     public function __construct(
         Context $context,
-        generalHelper $generalHelper
-    ) {
+        General $generalHelper
+    )
+    {
         $this->generalHelper = $generalHelper;
         parent::__construct($context);
     }
 
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|void
+     * @return ResponseInterface|ResultInterface|void
      */
     public function execute()
     {
-        $importStartTime = self::PATH_KNAWAT_DEFAULT.'kdropship_import_start_time';
-        $lastImportCount = self::PATH_KNAWAT_DEFAULT.'knawat_last_imported_count';
-        $lastImported = self::PATH_KNAWAT_DEFAULT.'knawat_last_imported';
-        $lastImportedProcessTime = self::PATH_KNAWAT_DEFAULT.'knawat_last_imported_process_time';
-        $importProcessLock = self::PATH_KNAWAT_DEFAULT.'kdropship_import_process_lock';
-        $configArray = array($importStartTime,$lastImportCount,$lastImported,$lastImportedProcessTime,$importProcessLock);
+        $importStartTime = self::PATH_KNAWAT_DEFAULT . 'kdropship_import_start_time';
+        $lastImportCount = self::PATH_KNAWAT_DEFAULT . 'knawat_last_imported_count';
+        $lastImported = self::PATH_KNAWAT_DEFAULT . 'knawat_last_imported';
+        $lastImportedProcessTime = self::PATH_KNAWAT_DEFAULT . 'knawat_last_imported_process_time';
+        $importProcessLock = self::PATH_KNAWAT_DEFAULT . 'kdropship_import_process_lock';
+        $configArray = [
+            $importStartTime,
+            $lastImportCount,
+            $lastImported,
+            $lastImportedProcessTime,
+            $importProcessLock
+        ];
+
         foreach ($configArray as $configValue) {
-            $this->generalHelper->setConfig($configValue,null);    
+            $this->generalHelper->setConfig($configValue, null);
         }
         $this->_redirect($this->_redirect->getRefererUrl());
     }
-
 
 
     /**
