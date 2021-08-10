@@ -104,38 +104,38 @@ class Sync extends \Magento\Backend\Block\Template
     /**
      * Getting total products by passing the path
      * @param $path string
-     * @return bool|int
+     * @return int
      */
-    public function getTotalProductsByPath($path)
+    public function getTotalProductsByPath($path): int
     {
-        $mp = $this->commonHelper->createMP();
+        $mpApp = $this->commonHelper->createMP();
 
-        if ($mp && $mp->getAccessToken() && ($total = $mp->client->get($path)->total) >= 0) {
+        if ($mpApp && $mpApp->getAccessToken() && ($total = $mpApp->client->get($path)->total) >= 0) {
             return $total;
         }
-        return false;
+        return 0;
     }
 
     /**
-     * @return bool | int
+     * @return int
      */
-    public function getTotalInStockProducts()
+    public function getTotalInStockProducts(): int
     {
         return $this->getTotalProductsByPath('/catalog/products/count?hideOutOfStock=1');
     }
 
     /**
-     * @return bool | int
+     * @return int
      */
-    public function getTotalProducts()
+    public function getTotalProducts(): int
     {
         return $this->getTotalProductsByPath('/catalog/products/count');
     }
 
     /**
-     * @return bool |int
+     * @return int
      */
-    public function getLastSyncProducts()
+    public function getLastSyncProducts(): int
     {
 
         $importedAt = $this->getLastImportTime();
@@ -143,11 +143,11 @@ class Sync extends \Magento\Backend\Block\Template
             $path = "/catalog/products/count?lastUpdate={$importedAt}";
             $pathTotalProducts = $this->getTotalProductsByPath($path);
             $totalProducts = $this->getTotalProducts();
-            if ($pathTotalProducts !== false && $totalProducts !== false) {
+            if ($pathTotalProducts && $totalProducts) {
                 return $totalProducts - $pathTotalProducts;
             }
         }
-        return false;
+        return 0;
     }
 
     /**
@@ -156,8 +156,7 @@ class Sync extends \Magento\Backend\Block\Template
      */
     public function getTimeMinutes()
     {
-        $lastImportProcessTime = $this->generalHelper->getConfigDirect('knawat_last_imported_process_time', true);
-        $date1 = $lastImportProcessTime;
+        $date1 = $this->generalHelper->getConfigDirect('knawat_last_imported_process_time', true);
         $date2 = $this->date->date()->format('Y-m-d H:i:s');
         $diff = abs(strtotime($date2) - strtotime($date1));
         if ($diff) {
@@ -182,16 +181,16 @@ class Sync extends \Magento\Backend\Block\Template
     }
 
     /**
-     * @return bool|float
+     * @return float
      */
-    public function getSyncBarAmount()
+    public function getSyncBarAmount(): float
     {
         $totalProducts = $this->getTotalProducts();
         $syncProducts = $this->getLastSyncProducts();
-        if ($totalProducts !== false && $syncProducts !== false) {
+        if ($totalProducts && $syncProducts ) {
             return round(($syncProducts * 100) / $totalProducts);
         }
-        return false;
+        return 0.0;
     }
 
     /**

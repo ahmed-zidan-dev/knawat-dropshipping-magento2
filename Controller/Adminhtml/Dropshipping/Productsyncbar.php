@@ -43,13 +43,13 @@ class Productsyncbar extends \Magento\Backend\App\Action
         $importStartTime = self::PATH_KNAWAT_DEFAULT . 'kdropship_import_start_time';
         $lastImportCount = self::PATH_KNAWAT_DEFAULT . 'knawat_last_imported_count';
         $lastImported = self::PATH_KNAWAT_DEFAULT . 'knawat_last_imported';
-        $lastImportedProcessTime = self::PATH_KNAWAT_DEFAULT . 'knawat_last_imported_process_time';
+        $processedAt = self::PATH_KNAWAT_DEFAULT . 'knawat_last_imported_process_time';
         $importProcessLock = self::PATH_KNAWAT_DEFAULT . 'kdropship_import_process_lock';
         $configArray = [
             $importStartTime,
             $lastImportCount,
             $lastImported,
-            $lastImportedProcessTime,
+            $processedAt,
             $importProcessLock
         ];
 
